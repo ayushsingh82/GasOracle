@@ -5,36 +5,29 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 contract GasOracle is Ownable, ReentrancyGuard {
+    uint256 public constant MINIMUM_STAKE = 500000000000000000; // 0.5 ether in wei
+    uint256 public constant MAX_DEVIATION = 10; // 10% maximum deviation
+
     struct GasData {
-        uint256 basePrice;      // Base gas price in wei
-        uint256 priorityPrice;  // Priority fee in wei
-        uint256 timestamp;      // Timestamp of last update
+        uint256 basePrice;
+        uint256 priorityPrice;
+        uint256 timestamp;
     }
 
-    // Minimum stake required to become a validator (0.5 ETH)
-    uint256 public constant MINIMUM_STAKE = 0.5 ether;
-    
-    // Maximum deviation allowed between submissions (10%)
-    uint256 public constant MAX_DEVIATION = 10;
-
-    // Mapping of validator addresses to their staked amount
     mapping(address => uint256) public validatorStakes;
-    
-    // Latest aggregated gas data
     GasData public latestGasData;
-    
-    // Mapping to track recent submissions
-    mapping(address => GasData) public recentSubmissions;
 
-    event GasPriceUpdated(uint256 basePrice, uint256 priorityPrice, uint256 timestamp);
     event ValidatorStaked(address indexed validator, uint256 amount);
     event ValidatorUnstaked(address indexed validator, uint256 amount);
+    event GasPriceUpdated(uint256 basePrice, uint256 priorityPrice, uint256 timestamp);
 
-    constructor() Ownable() {
-        latestGasData = GasData(0, 0, block.timestamp);
+    constructor() Ownable(msg.sender) {}
+
+    modifier onlyValidator() {
+        require(validatorStakes[msg.sender] >= MINIMUM_STAKE, "Not a validator");
+        _;
     }
 
-    // Stake ETH to become a validator
     function stakeToValidate() external payable {
         require(msg.value >= MINIMUM_STAKE, "Insufficient stake");
         require(validatorStakes[msg.sender] == 0, "Already staked");
@@ -43,71 +36,38 @@ contract GasOracle is Ownable, ReentrancyGuard {
         emit ValidatorStaked(msg.sender, msg.value);
     }
 
-    // Submit gas price data
-    function submitGasPrice(uint256 _basePrice, uint256 _priorityPrice) 
-        external 
-        nonReentrant 
-    {
-        require(validatorStakes[msg.sender] > 0, "Not a validator");
-        require(_basePrice > 0 && _priorityPrice > 0, "Invalid prices");
+    function submitGasPrice(uint256 basePrice, uint256 priorityPrice) external onlyValidator {
+        require(basePrice > 0 && priorityPrice > 0, "Invalid prices");
 
-        // Store the submission
-        recentSubmissions[msg.sender] = GasData(
-            _basePrice,
-            _priorityPrice,
-            block.timestamp
-        );
-
-        // Update aggregated price if within deviation
-        if (isWithinDeviation(_basePrice, _priorityPrice)) {
-            updateAggregatedPrice(_basePrice, _priorityPrice);
+        if (latestGasData.basePrice > 0 && latestGasData.priorityPrice > 0) {
+            uint256 baseDeviation = calculateDeviation(basePrice, latestGasData.basePrice);
+            uint256 priorityDeviation = calculateDeviation(priorityPrice, latestGasData.priorityPrice);
+            require(baseDeviation <= MAX_DEVIATION && priorityDeviation <= MAX_DEVIATION, "Price deviation too high");
         }
+
+        latestGasData = GasData({
+            basePrice: basePrice,
+            priorityPrice: priorityPrice,
+            timestamp: block.timestamp
+        });
+
+        emit GasPriceUpdated(basePrice, priorityPrice, block.timestamp);
     }
 
-    // Check if submission is within acceptable deviation
-    function isWithinDeviation(uint256 _basePrice, uint256 _priorityPrice) 
-        internal 
-        view 
-        returns (bool) 
-    {
-        if (latestGasData.basePrice == 0) return true;
+    function unstake() external nonReentrant onlyValidator {
+        uint256 amount = validatorStakes[msg.sender];
+        require(amount > 0, "No stake found");
 
-        uint256 baseDeviation = calculateDeviation(_basePrice, latestGasData.basePrice);
-        uint256 priorityDeviation = calculateDeviation(_priorityPrice, latestGasData.priorityPrice);
-
-        return baseDeviation <= MAX_DEVIATION && priorityDeviation <= MAX_DEVIATION;
+        validatorStakes[msg.sender] = 0;
+        
+        (bool success, ) = payable(msg.sender).call{value: amount}("");
+        require(success, "Transfer failed");
+        
+        emit ValidatorUnstaked(msg.sender, amount);
     }
 
-    // Calculate percentage deviation between two values
-    function calculateDeviation(uint256 _new, uint256 _old) 
-        internal 
-        pure 
-        returns (uint256) 
-    {
-        if (_old == 0) return 0;
-        uint256 diff = _new > _old ? _new - _old : _old - _new;
-        return (diff * 100) / _old;
-    }
-
-    // Update the aggregated gas price
-    function updateAggregatedPrice(uint256 _basePrice, uint256 _priorityPrice) 
-        internal 
-    {
-        latestGasData = GasData(
-            _basePrice,
-            _priorityPrice,
-            block.timestamp
-        );
-
-        emit GasPriceUpdated(_basePrice, _priorityPrice, block.timestamp);
-    }
-
-    // Get current gas price recommendation
-    function getGasPrice() external view returns (
-        uint256 basePrice,
-        uint256 priorityPrice,
-        uint256 timestamp
-    ) {
+    function getGasPrice() external view returns (uint256, uint256, uint256) {
+        require(latestGasData.timestamp > 0, "No gas data available");
         return (
             latestGasData.basePrice,
             latestGasData.priorityPrice,
@@ -115,15 +75,13 @@ contract GasOracle is Ownable, ReentrancyGuard {
         );
     }
 
-    // Unstake and withdraw ETH
-    function unstake() external nonReentrant {
-        uint256 stake = validatorStakes[msg.sender];
-        require(stake > 0, "No stake found");
-        
-        validatorStakes[msg.sender] = 0;
-        emit ValidatorUnstaked(msg.sender, stake);
-        
-        (bool success, ) = payable(msg.sender).call{value: stake}("");
-        require(success, "Transfer failed");
+    function calculateDeviation(uint256 newPrice, uint256 oldPrice) internal pure returns (uint256) {
+        require(oldPrice > 0, "Old price cannot be zero");
+        if (newPrice > oldPrice) {
+            return ((newPrice - oldPrice) * 100) / oldPrice;
+        }
+        return ((oldPrice - newPrice) * 100) / oldPrice;
     }
+
+    receive() external payable {}
 } 
