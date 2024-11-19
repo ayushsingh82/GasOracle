@@ -167,17 +167,22 @@ const GasOracle: React.FC = () => {
     }, [contract]);
 
     return (
-        <div className="min-h-screen bg-gray-100">
+        <div className="min-h-screen bg-gray-900 text-white">
+            {/* Sponsor Banner */}
+            <div className="w-full h-48 md:h-64 relative mb-8">
+              
+            </div>
+
             <div className="container mx-auto px-4 py-8">
                 <div className="max-w-4xl mx-auto">
-                    <div className="bg-white rounded-lg shadow-lg p-6">
-                        <h1 className="text-3xl font-bold text-gray-800 mb-8">
+                    <div className="bg-gray-800 rounded-lg shadow-xl p-6 border border-gray-700">
+                        <h1 className="text-3xl font-bold text-purple-400 mb-8">
                             Gas Oracle Dashboard
                         </h1>
                         
                         {loading && (
                             <div className="flex items-center justify-center">
-                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500"></div>
                             </div>
                         )}
                         
@@ -185,34 +190,34 @@ const GasOracle: React.FC = () => {
                             <button 
                                 onClick={connectWallet}
                                 disabled={loading}
-                                className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg transition duration-200 disabled:opacity-50"
+                                className="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-6 rounded-lg transition duration-200 disabled:opacity-50"
                             >
                                 {loading ? 'Connecting...' : 'Connect Wallet'}
                             </button>
                         ) : (
                             <div className="space-y-8">
                                 {/* Account Info */}
-                                <div className="bg-gray-50 rounded-lg p-4">
-                                    <h2 className="text-lg font-semibold text-gray-700 mb-2">Account Info</h2>
-                                    <p className="text-gray-600">
+                                <div className="bg-gray-700 rounded-lg p-4">
+                                    <h2 className="text-lg font-semibold text-purple-300 mb-2">Account Info</h2>
+                                    <p className="text-gray-300">
                                         Connected: {account.slice(0, 6)}...{account.slice(-4)}
                                     </p>
-                                    <p className="text-gray-600">
+                                    <p className="text-gray-300">
                                         Status: {isValidator ? 
-                                            <span className="text-green-500">Active Validator</span> : 
-                                            <span className="text-yellow-500">Not Validated</span>
+                                            <span className="text-green-400">Active Validator</span> : 
+                                            <span className="text-yellow-400">Not Validated</span>
                                         }
                                     </p>
                                 </div>
 
                                 {/* Validator Actions */}
                                 {!isValidator ? (
-                                    <div className="bg-white rounded-lg p-4 border border-gray-200">
-                                        <h2 className="text-lg font-semibold text-gray-700 mb-4">Become a Validator</h2>
+                                    <div className="bg-gray-700 rounded-lg p-4 border border-gray-600">
+                                        <h2 className="text-lg font-semibold text-purple-300 mb-4">Become a Validator</h2>
                                         <button 
                                             onClick={stakeETH}
                                             disabled={transactionPending}
-                                            className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded transition duration-200 disabled:opacity-50"
+                                            className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded transition duration-200 disabled:opacity-50"
                                         >
                                             {transactionPending ? 'Staking...' : 'Stake 0.5 ETH'}
                                         </button>
@@ -220,8 +225,8 @@ const GasOracle: React.FC = () => {
                                 ) : (
                                     <div className="space-y-6">
                                         {/* Submit Gas Prices */}
-                                        <div className="bg-white rounded-lg p-4 border border-gray-200">
-                                            <h2 className="text-lg font-semibold text-gray-700 mb-4">Submit Gas Prices</h2>
+                                        <div className="bg-gray-700 rounded-lg p-4 border border-gray-600">
+                                            <h2 className="text-lg font-semibold text-purple-300 mb-4">Submit Gas Prices</h2>
                                             <div className="space-y-4">
                                                 <input
                                                     type="number"
@@ -231,7 +236,7 @@ const GasOracle: React.FC = () => {
                                                         ...inputData,
                                                         basePrice: e.target.value
                                                     })}
-                                                    className="w-full border p-2 rounded"
+                                                    className="w-full bg-gray-800 border border-gray-600 p-2 rounded text-white placeholder-gray-400"
                                                 />
                                                 <input
                                                     type="number"
@@ -241,12 +246,12 @@ const GasOracle: React.FC = () => {
                                                         ...inputData,
                                                         priorityPrice: e.target.value
                                                     })}
-                                                    className="w-full border p-2 rounded"
+                                                    className="w-full bg-gray-800 border border-gray-600 p-2 rounded text-white placeholder-gray-400"
                                                 />
                                                 <button 
                                                     onClick={submitGasPrices}
                                                     disabled={transactionPending}
-                                                    className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded transition duration-200 disabled:opacity-50"
+                                                    className="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded transition duration-200 disabled:opacity-50"
                                                 >
                                                     {transactionPending ? 'Submitting...' : 'Submit Gas Prices'}
                                                 </button>
@@ -254,12 +259,12 @@ const GasOracle: React.FC = () => {
                                         </div>
 
                                         {/* Unstake Option */}
-                                        <div className="bg-white rounded-lg p-4 border border-gray-200">
-                                            <h2 className="text-lg font-semibold text-gray-700 mb-4">Validator Actions</h2>
+                                        <div className="bg-gray-700 rounded-lg p-4 border border-gray-600">
+                                            <h2 className="text-lg font-semibold text-purple-300 mb-4">Validator Actions</h2>
                                             <button 
                                                 onClick={unstakeETH}
                                                 disabled={transactionPending}
-                                                className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded transition duration-200 disabled:opacity-50"
+                                                className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded transition duration-200 disabled:opacity-50"
                                             >
                                                 {transactionPending ? 'Unstaking...' : 'Unstake ETH'}
                                             </button>
@@ -268,12 +273,12 @@ const GasOracle: React.FC = () => {
                                 )}
 
                                 {/* Current Gas Prices */}
-                                <div className="bg-white rounded-lg p-4 border border-gray-200">
-                                    <h2 className="text-lg font-semibold text-gray-700 mb-4">Current Gas Prices</h2>
+                                <div className="bg-gray-700 rounded-lg p-4 border border-gray-600">
+                                    <h2 className="text-lg font-semibold text-purple-300 mb-4">Current Gas Prices</h2>
                                     <div className="space-y-2">
-                                        <p className="text-gray-600">Base Price: {gasData.basePrice} Gwei</p>
-                                        <p className="text-gray-600">Priority Price: {gasData.priorityPrice} Gwei</p>
-                                        <p className="text-gray-600">Last Updated: {gasData.timestamp}</p>
+                                        <p className="text-gray-300">Base Price: {gasData.basePrice} Gwei</p>
+                                        <p className="text-gray-300">Priority Price: {gasData.priorityPrice} Gwei</p>
+                                        <p className="text-gray-300">Last Updated: {gasData.timestamp}</p>
                                     </div>
                                 </div>
                             </div>
