@@ -1,6 +1,68 @@
 # 🔮 GasAVS - Ethereum Gas Price AVS (Anti-Fraud Validation Service)
 
-![AVS Sponsor Banner](https://img.notionusercontent.com/s3/prod-files-secure/e3821394-36a3-4134-a834-5b97b6993e75/69fa43e0-c5d0-45d6-8087-82ee14310000/ihhlayersponsor.jpg)
+
+## 🎯 AVS Architecture & Workflow
+
+![GasAVS Workflow](docs/images/avs-workflow.png)
+
+```mermaid
+graph TD
+    subgraph "GasAVS Workflow"
+        A[Gas Price Sources] -->|Real-time Data| B[AVS Operators]
+        B -->|Stake 0.5 ETH| C[Validation Network]
+        C -->|Submit Prices| D[Consensus Layer]
+        D -->|Verify & Aggregate| E[Smart Contract]
+        E -->|Store Validated Prices| F[On-chain Data]
+        
+        subgraph "Fraud Prevention"
+            G[Risk Module] -->|Monitor| C
+            G -->|Challenge| H[Slashing Mechanism]
+            H -->|Penalty| B
+        end
+        
+        subgraph "Data Consumers"
+            F -->|Read Gas Prices| I[DeFi Protocols]
+            F -->|Query| J[End Users]
+        end
+    end
+
+    style A fill:#6366f1,stroke:#4f46e5,stroke-width:2px
+    style B fill:#8b5cf6,stroke:#7c3aed,stroke-width:2px
+    style C fill:#ec4899,stroke:#db2777,stroke-width:2px
+    style D fill:#06b6d4,stroke:#0891b2,stroke-width:2px
+    style E fill:#10b981,stroke:#059669,stroke-width:2px
+    style F fill:#f59e0b,stroke:#d97706,stroke-width:2px
+    style G fill:#ef4444,stroke:#dc2626,stroke-width:2px
+    style H fill:#f43f5e,stroke:#e11d48,stroke-width:2px
+    style I fill:#8b5cf6,stroke:#7c3aed,stroke-width:2px
+    style J fill:#6366f1,stroke:#4f46e5,stroke-width:2px
+```
+
+### Workflow Explanation:
+
+1. **Data Collection Layer** (Purple)
+   - Multiple gas price sources feed real-time data
+   - AVS operators collect and process raw data
+
+2. **Validation Layer** (Pink)
+   - Staked operators validate price submissions
+   - Consensus mechanisms ensure data accuracy
+
+3. **Consensus Layer** (Blue)
+   - Aggregates validated prices
+   - Applies weighted averaging based on stake
+
+4. **Smart Contract Layer** (Green)
+   - Stores validated gas prices on-chain
+   - Manages operator stakes and rewards
+
+5. **Security Layer** (Red)
+   - Monitors for suspicious activity
+   - Handles fraud proofs and slashing
+
+6. **Consumer Layer** (Orange)
+   - DeFi protocols consume validated prices
+   - End users query current gas prices
 
 ## 🎯 AVS Overview
 
